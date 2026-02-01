@@ -7,7 +7,10 @@ from typing import List, Optional
 from ..models.events import Event
 from dotenv import load_dotenv
 
-load_dotenv()
+# Only load .env if environment variables are missing (Local Dev)
+# In Docker, REDIS_URL is injected by docker-compose, so we skip .env to avoid override by volume mount.
+if not os.getenv("REDIS_URL"):
+    load_dotenv()
 
 logger = logging.getLogger(__name__)
 
