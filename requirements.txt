@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+redis
+sse-starlette
+pydantic
+groq
+python-dotenv
+streamlit
+requests
