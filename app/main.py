@@ -8,7 +8,7 @@ from .queue.redis_client import redis_client
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Antigravity API", version="0.1.0")
+app = FastAPI(title="Agentic AI System", version="0.1.0")
 
 # CORS
 app.add_middleware(

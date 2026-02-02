@@ -30,21 +30,37 @@ class WriterWorker(BaseWorker):
             if groq:
                 logger.info("Attempting streaming via Groq...")
                 
-                # Check for forced failure simulation IN GROQ path
-                # Ideally we want the simulation to trigger generic retry logic in BaseWorker
-                # But here we handle fallback. 
-                # If "SIMULATE_FAILURE" is set, BaseWorker logic handles it before this method if we bubble up?
-                # No, process_message calls this method.
-                # If we raise exception here, BaseWorker retries.
-                # The requirement says: "If Groq fails mid-stream... Switch to deterministic mock generator"
-                # So we catch specific Groq errors here, OR let general retry handle "SIMULATE_FAILURE"?
-                # "SIMULATE_FAILURE" logic is for *Infrastructure* testing.
-                # Let's keep the fail_mid_stream logic for the mock or generic path.
+                # --- CONTEXT RETRIEVAL (The Fix) ---
+                # Fetch all previous events to understand what happened
+                history = await self.redis.read_events(task_id, last_id="0-0", block=100)
+                context = ""
+                for _, data in history:
+                    try:
+                        # Parse the 'payload' json
+                        payload = data.get("payload")
+                        if payload:
+                            evt = Event.parse_raw(payload)
+                            # Collect content from Retriever and Analyzer
+                            if evt.source in [EventSource.RETRIEVER, EventSource.ANALYZER] and evt.message:
+                                context += f"\n[{evt.source.value.upper()}]: {evt.message}"
+                    except Exception:
+                        pass
                 
+                # Enhance the prompt with context
+                full_prompt = f"""
+                Context from previous agents:
+                {context}
+                
+                Instruction: {instruction}
+                
+                Write a comprehensive response based ONLY on the context provided above.
+                """
+                # -----------------------------------
+
                 stream = groq.chat.completions.create(
                     messages=[
-                        {"role": "system", "content": "You are a helpful AI writer. Be concise."},
-                        {"role": "user", "content": instruction}
+                        {"role": "system", "content": "You are a helpful AI writer. Be concise but informative."},
+                        {"role": "user", "content": full_prompt}
                     ],
                     model="llama-3.1-8b-instant",
                     temperature=0.7,
