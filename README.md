@@ -2,30 +2,44 @@
 
 ![Agentic AI Dashboard](docs/images/dashboard_preview.png)
 
-An advanced multi-agent AI system designed to plan, execute, and stream complex tasks with resilience and reliability.
+An advanced, event-driven multi-agent system designed to plan, execute, and stream complex tasks with resilience and reliability. Built with **FastAPI**, **Redis Streams**, and **Streamlit**.
 
-## System Architecture
+## 🏗️ High-Level Architecture
 
-### Task Lifecycle
-1.  **Submit**: User POSTs a request (`/task`).
-2.  **Plan**: `PlannerAgent` decomposes request into steps.
-3.  **Dispatch**: `Orchestrator` pushes steps to Redis Streams (`queue:retriever`, `queue:writer`).
-4.  **Execute**: Async workers consume messages independently (Manual Batching).
-5.  **Stream**: Real-time updates (Status, Partial Output, Errors) pushed to user via SSE.
+The system follows a scalable, event-driven architecture using Redis Streams as the central message bus.
 
-### Technical Highlights
--   **Explicit Agent Boundaries**: Dedicated worker modules (`retriever_worker.py`, etc.).
--   **Cognitive Layer (Groq)**: Optional LLM integration for Planner (reasoning) and Writer (streaming), with automatic deterministic fallback.
--   **Resilience**: `BaseWorker` handles retries (exponential backoff) and dead-letters.
--   **Streaming**: `WriterWorker` emits tokens character-by-character.
--   **Testing**: Auto-fallback to `fakeredis` (in-memory) if Redis needs to be mocked.
+```text
+User (Streamlit UI)
+       ↓
+FastAPI Backend (/task)
+       ↓
+PlannerAgent (Decomposes Task)
+       ↓
+Redis Streams (Event Bus)
+       ↓
+[ Orchestrator ] → Dispatch to Workers
+       ↓
+Agent Workers (Retriever, Analyzer, Writer)
+       ↓
+WriterWorker (SSE Stream)
+       ↓
+User (Live Updates)
+```
 
-## Requirements
+## 🚀 Key Features
 
-- Docker (recommended) OR Python 3.9+ and Redis
-- (Optional) Groq API Key
+*   **Event-Driven Architecture**: Decoupled agents communicate exclusively via Redis Streams.
+*   **Resilient Workers**: Automatic retries with exponential backoff and dead-letter handling.
+*   **Real-Time Streaming**: Server-Sent Events (SSE) provide character-by-character updates to the UI.
+*   **Hybrid Cognitive Layer**: Optional integration with **Groq LLMs** for reasoning, with automatic fallback to deterministic (mock) logic for offline reliability.
+*   **Containerized**: Fully Dockerized stack with internal networking.
 
-## 🚀 Quick Start with Docker (Recommended)
+## 🛠️ Requirements
+
+*   **Docker** (Recommended)
+*   *Alternative:* Python 3.9+ and Redis Server
+
+## ⚡ Quick Start (Recommended)
 
 Run the entire system (Redis + Backend + Frontend) with a single command:
 
@@ -34,55 +48,49 @@ docker-compose up --build
 ```
 
 Access the application:
-- **Frontend Dashboard**: [http://localhost:8501](http://localhost:8501)
-- **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+*   **Frontend Dashboard**: [http://localhost:8501](http://localhost:8501)
+*   **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-> **Note**: This setup uses a production-grade Docker configuration where services communicate over an internal network.
+> **Note**: This runs a production-grade configuration where services communicate over an internal Docker network.
 
-## Configuration
+## ⚙️ Configuration
 
-To enable the cognitive layer (LLMs), set the environment variable in `.env` (or pass to Docker):
+The system is designed to run out-of-the-box in **Deterministic Mode** (Mock Logic).
+To enable LLM capabilities, create a `.env` file or set environment variables:
 
-```bash
+```env
 GROQ_API_KEY=gsk_...
 USE_GROQ=true
 ```
-Groq is preferred but optional. The system always produces output, even when running fully offline.
 
-If these are missing, the system automatically runs in **Deterministic Mode** (Mock Logic).
+## 💻 Local Development
 
-## Local Development (Without Docker)
+If you prefer running services individually (without Docker Compose):
 
-1.  **Install dependencies**:
+1.  **Install Dependencies**:
     ```bash
     pip install -r requirements.txt
     ```
 
-2.  **Start Redis** (System falls back to `fakeredis` if missing, but real Redis is better):
-    ```bash
-    # Ensure Redis is running locally on port 6379
-    ```
+2.  **Start Redis**:
+    Ensure Redis is running on port `6379`.
 
-3.  **Run the Server**:
+3.  **Run Backend**:
     ```bash
     python -m uvicorn app.main:app --reload
     ```
     (Runs at `http://localhost:8000`)
 
-4.  **Run the UI**:
+4.  **Run Frontend**:
     ```bash
     python -m streamlit run ui/app.py
     ```
     (Opens at `http://localhost:8501`)
 
-## Testing & Verification
+## ✅ Testing
 
-Integration tests verify the entire flow including failure handling.
+Run integration tests to verify the pipeline and failure handling:
 
 ```bash
 python tests/integration_test.py
 ```
-
-## Architecture
-
-See `docs/system_design.md` for detailed architecture diagrams.

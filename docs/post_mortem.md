@@ -32,3 +32,16 @@ We transformed the system from a backend-only API into a full-stack product with
 *   **Problem**: Initially, the UI would loop infinitely at the end of a task. The `DONE` event triggered a state update, which triggered a rerun, which re-read the event history, which again saw `DONE`.
 *   **Fix**: We introduced a specific state flag `st.session_state.stream_completed`. Once `True`, the SSE consumer loop is structurally skipped in subsequent reruns.
 *   **Takeaway**: In Streamlit, *never* drive control flow purely from derived data (like "is the last event distinct?"). Always use explicit boolean flags in `session_state` to latch state transitions.
+
+## Phase 8: Production Dockerization
+
+### Summary
+We moved from a local Python script execution model to a fully containerized **Production Stack** using `docker-compose`. This involved orchestrating three distinct services (Redis, Backend, Frontend) and ensuring seamless communication over a private bridge network.
+
+### Challenges
+*   **Networking confusion**: The most significant challenge was the difference between `localhost` inside a container (which refers to itself) vs. `localhost` on the host machine. The Frontend initially failed to talk to the Backend because it was trying to connect to `127.0.0.1` instead of the Docker alias `backend`.
+*   **Environment var precedence**: We discovered a critical bug where `python-dotenv` loaded the local `.env` file (mounted via volumes), overriding the `REDIS_URL` set by Docker Compose. This caused the container to try connecting to `localhost:6379` (where no Redis existed) instead of `redis:6379`.
+
+### Mitigation
+*   **Smart Config Loading**: We patched `redis_client.py` to only load `.env` if `REDIS_URL` is missing. This allows Docker's injected variables to take precedence while preserving local dev convenience.
+*   **Internal vs Browser URLs**: We separated the `BACKEND_URL` (internal Docker DNS for server-side calls) from the Browser URL (external `localhost` for user access).

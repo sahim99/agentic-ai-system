@@ -13,7 +13,6 @@ The **Antigravity** system is an Event-Driven Agentic AI platform designed for r
 2.  **Event Bus (Redis Streams)**:
     *   `task_events:{task_id}`: The *Single Source of Truth* for task progress. All agents publish status, errors, and partial output here. The SSE endpoint consumes this stream.
     *   `queue:{agent_name}`: Dedicated work queues for each agent type (Retriever, Analyzer, Writer).
-
 3.  **Orchestration Layer**:
     *   **Planner**: Decomposes the user request into discrete steps (mock LLM for now).
     *   **Orchestrator**: deterministic state machine that executes the plan by dispatching steps to agent queues.
