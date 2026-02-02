@@ -1,6 +1,8 @@
 import requests
 
-BASE_URL = "http://localhost:8000"
+import os
+
+BASE_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 def check_backend():
     """Checks if the backend is reachable."""

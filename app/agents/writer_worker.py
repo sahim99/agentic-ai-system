@@ -77,7 +77,7 @@ class WriterWorker(BaseWorker):
         # 3. Deterministic Fallback (Safety Net)
         if not used_groq:
             logger.info("Using deterministic writer fallback.")
-            await asyncio.sleep(1) # Simulate work
+            await asyncio.sleep(0.2) # Simulate work
             
             response_text = " [FALLBACK] Based on the analysis, agentic AI systems represent a significant leap forward in autonomy. They can plan, execute, and verify tasks."
             tokens = response_text.split(" ")
@@ -93,7 +93,7 @@ class WriterWorker(BaseWorker):
                     source=EventSource.WRITER,
                     message=token + " " 
                 ))
-                await asyncio.sleep(0.15)
+                await asyncio.sleep(0.05)
             
         # 4. Emit Done
         await self.redis.publish_event(task_id, Event(

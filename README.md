@@ -1,5 +1,7 @@
 # Agentic AI System for Multi Tasks
 
+![Agentic AI Dashboard](docs/images/dashboard_preview.png)
+
 An advanced multi-agent AI system designed to plan, execute, and stream complex tasks with resilience and reliability.
 
 ## System Architecture
@@ -20,51 +22,58 @@ An advanced multi-agent AI system designed to plan, execute, and stream complex 
 
 ## Requirements
 
-- Python 3.9+
-- Redis (standard or `fakeredis` fallback)
+- Docker (recommended) OR Python 3.9+ and Redis
 - (Optional) Groq API Key
+
+## 🚀 Quick Start with Docker (Recommended)
+
+Run the entire system (Redis + Backend + Frontend) with a single command:
+
+```bash
+docker-compose up --build
+```
+
+Access the application:
+- **Frontend Dashboard**: [http://localhost:8501](http://localhost:8501)
+- **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+> **Note**: This setup uses a production-grade Docker configuration where services communicate over an internal network.
 
 ## Configuration
 
-To enable the cognitive layer (LLMs), set the environment variable:
+To enable the cognitive layer (LLMs), set the environment variable in `.env` (or pass to Docker):
 
 ```bash
-set GROQ_API_KEY=gsk_...
-set USE_GROQ=true
+GROQ_API_KEY=gsk_...
+USE_GROQ=true
 ```
 Groq is preferred but optional. The system always produces output, even when running fully offline.
 
 If these are missing, the system automatically runs in **Deterministic Mode** (Mock Logic).
 
-## Installation
+## Local Development (Without Docker)
 
 1.  **Install dependencies**:
     ```bash
     pip install -r requirements.txt
     ```
 
-2.  **Start Redis** (Optional - system falls back to fake redis if missing):
+2.  **Start Redis** (System falls back to `fakeredis` if missing, but real Redis is better):
     ```bash
-    docker-compose up -d
+    # Ensure Redis is running locally on port 6379
     ```
 
-## Running the Server
+3.  **Run the Server**:
+    ```bash
+    python -m uvicorn app.main:app --reload
+    ```
+    (Runs at `http://localhost:8000`)
 
-**Important**: Run all commands from the project root (`Agentic AI System for Multi Tasks`).
-
-```bash
-python -m uvicorn app.main:app --reload
-```
-
-Server will run at `http://localhost:8000`.
-
-To start the **Live UI Dashboard**:
-
-```bash
-python -m streamlit run ui/app.py
-```
-
-The UI will open at `http://localhost:8501`.
+4.  **Run the UI**:
+    ```bash
+    python -m streamlit run ui/app.py
+    ```
+    (Opens at `http://localhost:8501`)
 
 ## Testing & Verification
 

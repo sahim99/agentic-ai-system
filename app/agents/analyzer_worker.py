@@ -24,7 +24,7 @@ class AnalyzerWorker(BaseWorker):
         ))
         
         # Simulate work
-        await asyncio.sleep(2)
+        await asyncio.sleep(0.5)
         
         # 2. Emit Status: Analysis Complete
         await self.redis.publish_event(task_id, Event(

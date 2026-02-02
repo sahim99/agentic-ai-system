@@ -113,3 +113,24 @@ The system implements **Manual Batching** via Redis Streams, intentionally avoid
 *   **Async Orchestration**: The Orchestrator uses a "fire-and-forget" pattern, dispatching to streams without blocking.
 *   **Explicit Failure Handling**: Retries are visible events (`ERROR` type), not silent internal loops.
 *   **Scalability**: New worker instances can be spun up (Docker containers) to consume from the same Redis consumer group (future enhancement) without code changes.
+
+## 6. Docker Containerization (Phase 8)
+
+The system is fully containerized for production-grade deployment over a strict Docker Network.
+
+### Services Stack
+1.  **Redis (`redis:7-alpine`)**:
+    *   Exposes port `6379` internally to the network `agentic-net`.
+    *   No host-side port binding required for internal communication.
+
+2.  **Backend (`app/main.py`)**:
+    *   Depends on `redis`.
+    *   Connects via internal DNS `redis://redis:6379`.
+    *   Exposes port `8000` to host for API access.
+
+3.  **Frontend (`ui/app.py`)**:
+    *   Depends on `backend`.
+    *   Connects to Backend via internal DNS `http://backend:8000` (server-side calls) or `http://localhost:8000` (browser-side JS calls).
+    *   Exposes port `8501` to host for User Interface.
+
+This "Stack" approach ensures that the environment is consistent across all machines (Windows/Linux/Mac) and eliminates "works on my machine" issues related to Redis installation or Python versions.
