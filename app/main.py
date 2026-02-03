@@ -69,4 +69,4 @@ async def shutdown_event():
 
 @app.get("/")
 async def root():
-    return {"message": "Antigravity API is running"}
+    return {"message": "Agentic AI System API is running"}

@@ -32,7 +32,7 @@ class WriterWorker(BaseWorker):
                 
                 # --- CONTEXT RETRIEVAL (The Fix) ---
                 # Fetch all previous events to understand what happened
-                history = await self.redis.read_events(task_id, last_id="0-0", block=100)
+                history = await self.redis.read_events(task_id, last_id="0-0", block=100, count=1000)
                 context = ""
                 for _, data in history:
                     try:

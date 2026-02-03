@@ -90,7 +90,7 @@ class RedisClient:
             # For this agentic system, logging is critical.
             raise e
 
-    async def read_events(self, task_id: str, last_id: str = "0-0", block: int = 5000) -> List[tuple]:
+    async def read_events(self, task_id: str, last_id: str = "0-0", block: int = 5000, count: int = 100) -> List[tuple]:
         """
         Reads new events from the stream.
         Returns a list of (stream_id, payload_dict).
@@ -101,7 +101,7 @@ class RedisClient:
         try:
             # xread returns: [[stream_key, [(msg_id, data), ...]], ...]
             # We ask for COUNT 10 just to be safe, but usually consume linear stream.
-            streams = await self.redis.xread({stream_key: last_id}, count=10, block=block)
+            streams = await self.redis.xread({stream_key: last_id}, count=count, block=block)
             
             if not streams:
                 return []
